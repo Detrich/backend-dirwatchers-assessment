@@ -6,6 +6,7 @@ import time
 import sys
 import argparse
 import os
+from datetime import datetime as dt
 # globals
 exit_flag = False
 # create logger
@@ -15,14 +16,9 @@ formatter = logging.Formatter(
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-file_handler = logging.FileHandler("dirwatcher.log")
-file_handler.setLevel(logging.INFO)
-file_handler.setFormatter(formatter)
-
 stream_handler = logging.StreamHandler()
 stream_handler.setFormatter(formatter)
 
-logger.addHandler(file_handler)
 logger.addHandler(stream_handler)
 
 watch_dict = {}
@@ -34,9 +30,13 @@ def scan_single_file(fullpath, magic_text):
     with open(fullpath, "r") as f:
         line = f.readline()
         cnt = 1
+        cntlist = []
         while line:
             if magic_text in line:
-                logger.info(f"{magic_text} found on line {cnt} of {only_file}")
+                if cnt > watch_dict[fullpath]:
+                    logger.info(f"{magic_text} found on line {cnt} of {only_file}")
+                    watch_dict[fullpath] = (cnt)
+                    cntlist.append(cnt)
             line = f.readline()
             cnt += 1
 
@@ -46,7 +46,7 @@ def detect_added_files(name):
     only_file = name.split("/")[-1]
     if name not in watch_dict:
         logger.info(f"file created: {only_file}")
-        watch_dict.update({name: None})
+        watch_dict.update({name: 0})
 
 
 def detect_removed_files(files):
@@ -75,9 +75,8 @@ def watch_dir(text, dir, EXT):
                     files_list.append(fullpath)
             if detect_removed_files(files_list):
                 break
-                print(os.path.join(root, name))
     else:
-        logger.error(f"{dir} does not exist")
+        logger.error(f"Directory: {dir} does not exist")
 
 
 def signal_handler(sig_num, frame):
@@ -109,6 +108,16 @@ def create_parser():
 
 
 def main(args):
+    app_start_time = dt.now()
+
+    logger.info(
+        '\n'
+        '-------------------------------------------------------------------\n'
+        '        Running {}\n'
+        '        Started on {}\n'
+        '-------------------------------------------------------------------\n'
+        .format(__file__, app_start_time.isoformat()))
+
     # Hook these two signals from the OS .. 
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
@@ -124,17 +133,13 @@ def main(args):
     EXT = ns.ext
     path = ns.path
     polling_interval = ns.interval
-    print(magic)
-    print(EXT)
-    print(path)
-    print(polling_interval)
 
     while not exit_flag:
         try:
             watch_dir(magic, path, EXT)
             # call my directory watching function..
         except Exception as e:
-            logger.exception(e)
+            logger.error(e)
             # This is an UNHANDLED exception
             # Log an ERROR level message here
 
@@ -144,6 +149,15 @@ def main(args):
     # final exit point happens here
     # Log a message that we are shutting down
     # Include the overall uptime since program start.
+    uptime = dt.now() - app_start_time
+
+    logger.info(
+        '\n'
+        '-------------------------------------------------------------------\n'
+        '        Stopped {}\n'
+        '        Uptime was {}\n'
+        '-------------------------------------------------------------------\n'
+        .format(__file__, uptime))
 
 
 if __name__ == '__main__':
