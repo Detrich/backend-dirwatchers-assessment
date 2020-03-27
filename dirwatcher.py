@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+__author__ = "Detrich"
 
 import signal
 import logging
@@ -79,15 +80,11 @@ def watch_dir(text, dir, EXT):
         logger.error(f"Directory: {dir} does not exist")
 
 
-def signal_handler(sig_num, frame):
+def signal_handler(sig_num):
     """
-    This is a handler for SIGTERM and SIGINT. Other signals can be mapped
-    here as well (SIGHUP?)
-    Basically it just sets a global flag, and main() will exit it's loop if
-    the signal is trapped.
-    :param sig_num: The integer signal number that was trapped from the OS.
-    :param frame: Not used
-    :return None
+    This is a handler for SIGTERM and SIGINT.
+    Basically it just sets a global flag,
+    and main() will exit it's loop if the signal is trapped.
     """
 
     # log the associated signal name (the python3 way)
@@ -105,7 +102,7 @@ def create_parser():
                         help="filters what kind of file extension to look for")
     parser.add_argument("magic",
                         help="specifics the magic text to search for")
-    parser.add_argument("path",
+    parser.add_argument("dir",
                         help="specify the directory to watch")
     return parser
 
@@ -124,11 +121,10 @@ def main(args):
 
     magic = ns.magic
     EXT = ns.ext
-    path = ns.path
+    path = ns.dir
     polling_interval = ns.interval
 
     app_start_time = dt.now()
-    uptime = dt.now() - app_start_time
 
     logger.info(
         '\n'
@@ -148,6 +144,7 @@ def main(args):
         # put a sleep inside my while loop so I don't peg the cpu usage at 100%
         time.sleep(polling_interval)
 
+    uptime = dt.now() - app_start_time
     logger.info(
         '\n'
         '-------------------------------------------------------------------\n'

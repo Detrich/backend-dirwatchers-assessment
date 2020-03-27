@@ -4,7 +4,7 @@ This program is a Directory watcher that will continually watch a Specific direc
 
 The first argument in the program will be the polling interval of the program(integer).The second argument will be the extension of the files to search for in the directory(.log,.txt...). The third argument will be the text to search for in the file. The fourth and final argument will be the directory to search in.
 
-USAGE: python dirwatcher.py [-i INTERVAL] [-e EXT] magic path
+USAGE: python dirwatcher.py [-i INTERVAL] [-e EXT] magic dir
 
 Examples of the program being ran:  
 ```
