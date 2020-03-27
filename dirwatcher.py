@@ -80,7 +80,7 @@ def watch_dir(text, dir, EXT):
         logger.error(f"Directory: {dir} does not exist")
 
 
-def signal_handler(sig_num):
+def signal_handler(sig_num, frame):
     """
     This is a handler for SIGTERM and SIGINT.
     Basically it just sets a global flag,
