@@ -24,17 +24,17 @@ logger.addHandler(stream_handler)
 watch_dict = {}
 
 
-def scan_single_file(fullpath, magic_text):
+def scan_single_file(fullpath, magic):
     """scans a file for the magic text"""
-    only_file = fullpath.split("/")[-1]
+    only_f = fullpath.split("/")[-1]
     with open(fullpath, "r") as f:
         line = f.readline()
         cnt = 1
         cntlist = []
         while line:
-            if magic_text in line:
+            if magic in line:
                 if cnt > watch_dict[fullpath]:
-                    logger.info(f"{magic_text} found on line {cnt} of {only_file}")
+                    logger.info(f"{magic} found on line {cnt} of {only_f}")
                     watch_dict[fullpath] = (cnt)
                     cntlist.append(cnt)
             line = f.readline()
@@ -81,8 +81,10 @@ def watch_dir(text, dir, EXT):
 
 def signal_handler(sig_num, frame):
     """
-    This is a handler for SIGTERM and SIGINT. Other signals can be mapped here as well (SIGHUP?)
-    Basically it just sets a global flag, and main() will exit it's loop if the signal is trapped.
+    This is a handler for SIGTERM and SIGINT. Other signals can be mapped
+    here as well (SIGHUP?)
+    Basically it just sets a global flag, and main() will exit it's loop if
+    the signal is trapped.
     :param sig_num: The integer signal number that was trapped from the OS.
     :param frame: Not used
     :return None
@@ -95,6 +97,7 @@ def signal_handler(sig_num, frame):
 
 
 def create_parser():
+    """creates args for parser"""
     parser = argparse.ArgumentParser()
     parser.add_argument("-i", "--interval", type=int,
                         help="controls the polling interval")
@@ -108,20 +111,10 @@ def create_parser():
 
 
 def main(args):
-    app_start_time = dt.now()
-
-    logger.info(
-        '\n'
-        '-------------------------------------------------------------------\n'
-        '        Running {}\n'
-        '        Started on {}\n'
-        '-------------------------------------------------------------------\n'
-        .format(__file__, app_start_time.isoformat()))
-
-    # Hook these two signals from the OS .. 
+    # Hook two signals from the OS ..
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
-    # Now my signal_handler will get called if OS sends either of these to my process.
+
     parser = create_parser()
     ns = parser.parse_args(args)
 
@@ -134,22 +127,26 @@ def main(args):
     path = ns.path
     polling_interval = ns.interval
 
+    app_start_time = dt.now()
+    uptime = dt.now() - app_start_time
+
+    logger.info(
+        '\n'
+        '-------------------------------------------------------------------\n'
+        '        Running {}\n'
+        '        Started on {}\n'
+        '-------------------------------------------------------------------\n'
+        .format(__file__, app_start_time.isoformat()))
+
     while not exit_flag:
         try:
             watch_dir(magic, path, EXT)
             # call my directory watching function..
         except Exception as e:
             logger.error(e)
-            # This is an UNHANDLED exception
-            # Log an ERROR level message here
 
         # put a sleep inside my while loop so I don't peg the cpu usage at 100%
         time.sleep(polling_interval)
-
-    # final exit point happens here
-    # Log a message that we are shutting down
-    # Include the overall uptime since program start.
-    uptime = dt.now() - app_start_time
 
     logger.info(
         '\n'
