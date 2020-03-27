@@ -7,7 +7,7 @@ The first argument in the program will be the polling interval of the program(in
 USAGE: python dirwatcher.py [-i INTERVAL] [-e EXT] magic path
 
 Examples of the program being ran:  
-    ```
-    python dirwatcher.py -i 1 -e .log hello watchme  
-    python dirwatcher.py -i 2 -e .log magic-text directory  
-    ```
+```
+python dirwatcher.py -i 1 -e .log hello watchme  
+python dirwatcher.py -i 2 -e .log magic-text directory  
+```
